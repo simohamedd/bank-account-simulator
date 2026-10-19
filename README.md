@@ -8,7 +8,7 @@ A console banking app that models current and savings accounts the way a real le
 - Current accounts with an overdraft limit
 - Savings accounts that can't go overdrawn and earn monthly interest
 - Transfers between accounts, with all-or-nothing behaviour
-- Statements showing each transaction and the running balance
+- Statements showing each transaction and the running balance, exportable to CSV for Excel
 
 ## Design
 - `Account` is abstract; `CurrentAccount` and `SavingsAccount` differ only in overdraft rules and interest

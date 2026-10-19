@@ -78,4 +78,15 @@ class BankTest {
         assertThrows(IllegalArgumentException.class, () -> a.deposit(m("0"), "Nothing"));
         assertThrows(IllegalArgumentException.class, () -> a.withdraw(m("-5"), "Negative"));
     }
+
+    @Test
+    void exportsStatementAsCsv() {
+        CurrentAccount a = bank.openCurrent("Amina", m("0"));
+        a.deposit(m("100"), "Salary");
+        a.withdraw(m("12.50"), "Coffee, cake");
+        String[] lines = StatementExporter.toCsv(a).split("\n");
+        assertEquals("date,type,description,money_in,money_out,balance", lines[0]);
+        assertEquals("2026-10-18 10:00,DEPOSIT,Salary,100.00,,100.00", lines[1]);
+        assertEquals("2026-10-18 10:00,WITHDRAWAL,\"Coffee, cake\",,12.50,87.50", lines[2]);
+    }
 }
