@@ -23,7 +23,7 @@ public class BankApp {
                     2  Open savings account      6  Statement
                     3  Deposit                   7  List accounts
                     4  Withdraw                  8  End of month (pay interest)
-                    0  Quit""");
+                    9  Export statement to CSV   0  Quit""");
             String choice = ask("Choose");
             try {
                 switch (choice) {
@@ -35,10 +35,11 @@ public class BankApp {
                     case "6" -> { Account a = account(); System.out.println(a); a.history().forEach(t -> System.out.println("  " + t)); }
                     case "7" -> { bank.accounts().forEach(System.out::println); System.out.println("Total held: " + Money.format(bank.totalDeposits())); }
                     case "8" -> System.out.println("Interest paid: " + Money.format(bank.endOfMonth()));
+                    case "9" -> System.out.println("Saved " + StatementExporter.write(account(), java.nio.file.Path.of(".")).toAbsolutePath());
                     case "0" -> { System.out.println("Goodbye"); return; }
                     default -> System.out.println("Pick a number from the menu");
                 }
-            } catch (RuntimeException e) {
+            } catch (RuntimeException | java.io.IOException e) {
                 System.out.println("Couldn't do that: " + e.getMessage());
             }
         }
