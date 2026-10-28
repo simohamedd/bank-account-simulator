@@ -14,6 +14,7 @@ A console banking app that models current and savings accounts the way a real le
 - `Account` is abstract; `CurrentAccount` and `SavingsAccount` differ only in overdraft rules and interest
 - A `Clock` is injected so tests are deterministic
 - `InsufficientFundsException` is raised before any balance changes
+- Amounts must be whole pennies (`10.005` is rejected rather than silently rounded), non-numeric input gets a readable error, and savings rates must be between 0% and 100%
 
 ## Run
 ```bash
