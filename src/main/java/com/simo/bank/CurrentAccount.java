@@ -9,6 +9,9 @@ public class CurrentAccount extends Account {
 
     public CurrentAccount(String number, String owner, BigDecimal overdraft, Clock clock) {
         super(number, owner, clock);
+        if (overdraft == null) {
+            throw new IllegalArgumentException("Overdraft limit is required (use 0 for none)");
+        }
         if (overdraft.signum() < 0) {
             throw new IllegalArgumentException("Overdraft can't be negative");
         }
