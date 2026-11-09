@@ -38,7 +38,7 @@ public class Bank {
         return new ArrayList<>(accounts.values());
     }
 
-    /** Moves money between two accounts; nothing changes if the source can't cover it. */
+    /** Moves money between two accounts; nothing changes if the source can't cover it or either account is closed. */
     public void transfer(String from, String to, BigDecimal amount) {
         Money.requirePositive(amount);
         if (from.equals(to)) {
@@ -46,6 +46,9 @@ public class Bank {
         }
         Account source = find(from);
         Account target = find(to);
+        // Check both ends before touching either balance, so a closed target can't swallow the debit.
+        source.requireOpen();
+        target.requireOpen();
         source.debit(Transaction.Type.TRANSFER_OUT, amount, "To " + to);
         target.credit(Transaction.Type.TRANSFER_IN, amount, "From " + from);
     }
@@ -54,11 +57,18 @@ public class Bank {
     public BigDecimal endOfMonth() {
         BigDecimal total = BigDecimal.ZERO;
         for (Account a : accounts.values()) {
-            if (a instanceof SavingsAccount s) {
+            if (a instanceof SavingsAccount s && !s.isClosed()) {
                 total = total.add(s.applyMonthlyInterest());
             }
         }
         return total;
+    }
+
+    /** Closes an account whose balance is zero; see {@link Account#close()}. */
+    public Account close(String number) {
+        Account a = find(number);
+        a.close();
+        return a;
     }
 
     public BigDecimal totalDeposits() {
