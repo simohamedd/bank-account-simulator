@@ -14,6 +14,7 @@ public abstract class Account {
     private BigDecimal balance = Money.of("0");
     private final List<Transaction> history = new ArrayList<>();
     private final Clock clock;
+    private boolean closed;
 
     protected Account(String number, String owner, Clock clock) {
         if (owner == null || owner.isBlank()) {
@@ -44,16 +45,42 @@ public abstract class Account {
     }
 
     void credit(Transaction.Type type, BigDecimal amount, String description) {
+        requireOpen();
         balance = Money.round(balance.add(amount));
         record(type, amount, description);
     }
 
     void debit(Transaction.Type type, BigDecimal amount, String description) {
+        requireOpen();
         if (amount.compareTo(available()) > 0) {
             throw new InsufficientFundsException(number, available());
         }
         balance = Money.round(balance.subtract(amount));
         record(type, amount, description);
+    }
+
+    /**
+     * Closes the account. Only an account with a balance of exactly zero can be closed, so no money
+     * is lost; afterwards it refuses every movement but keeps its history for statements.
+     */
+    public void close() {
+        requireOpen();
+        if (balance.signum() != 0) {
+            throw new IllegalStateException("Account " + number + " still holds " + Money.format(balance)
+                    + "; bring the balance to zero before closing it");
+        }
+        closed = true;
+    }
+
+    public boolean isClosed() {
+        return closed;
+    }
+
+    /** Throws if the account has been closed. */
+    void requireOpen() {
+        if (closed) {
+            throw new IllegalStateException("Account " + number + " is closed");
+        }
     }
 
     private void record(Transaction.Type type, BigDecimal amount, String description) {
@@ -67,6 +94,7 @@ public abstract class Account {
 
     @Override
     public String toString() {
-        return String.format("%s  %-8s %-20s %s", number, kind(), owner, Money.format(balance));
+        String line = String.format("%s  %-8s %-20s %s", number, kind(), owner, Money.format(balance));
+        return closed ? line + "  (closed)" : line;
     }
 }
