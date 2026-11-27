@@ -6,10 +6,18 @@ import java.time.Clock;
 
 public class SavingsAccount extends Account {
 
+    static final BigDecimal MAX_RATE_PERCENT = new BigDecimal("100");
+
     private final BigDecimal annualRatePercent;
 
     public SavingsAccount(String number, String owner, BigDecimal annualRatePercent, Clock clock) {
         super(number, owner, clock);
+        if (annualRatePercent == null) {
+            throw new IllegalArgumentException("Interest rate is required (use 0 for none)");
+        }
+        if (annualRatePercent.signum() < 0 || annualRatePercent.compareTo(MAX_RATE_PERCENT) > 0) {
+            throw new IllegalArgumentException("Interest rate must be between 0% and " + MAX_RATE_PERCENT + "%");
+        }
         this.annualRatePercent = annualRatePercent;
     }
 

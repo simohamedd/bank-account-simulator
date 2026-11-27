@@ -89,4 +89,39 @@ class BankTest {
         assertEquals("2026-10-18 10:00,DEPOSIT,Salary,100.00,,100.00", lines[1]);
         assertEquals("2026-10-18 10:00,WITHDRAWAL,\"Coffee, cake\",,12.50,87.50", lines[2]);
     }
+
+    @Test
+    void rejectsFractionsOfAPennyInsteadOfSilentlyRounding() {
+        CurrentAccount a = bank.openCurrent("Amina", m("0"));
+        assertThrows(IllegalArgumentException.class, () -> a.deposit(new BigDecimal("0.004"), "Dust"));
+        assertThrows(IllegalArgumentException.class, () -> a.deposit(new BigDecimal("10.005"), "Odd"));
+        assertThrows(IllegalArgumentException.class, () -> Money.of("19.999"));
+        assertEquals(0, a.history().size());
+        a.deposit(new BigDecimal("10.500"), "Trailing zeros are fine");
+        assertEquals(m("10.50"), a.balance());
+    }
+
+    @Test
+    void parsingNonNumericInputGivesReadableError() {
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> Money.of("ten"));
+        assertEquals("'ten' isn't a valid amount", e.getMessage());
+        assertEquals(m("12.30"), Money.of(" 12.3 "));
+    }
+
+    @Test
+    void savingsRateMustBeBetweenZeroAndOneHundredPercent() {
+        assertThrows(IllegalArgumentException.class, () -> bank.openSavings("Sara", new BigDecimal("-1")));
+        assertThrows(IllegalArgumentException.class, () -> bank.openSavings("Sara", new BigDecimal("100.01")));
+        assertThrows(IllegalArgumentException.class, () -> bank.openSavings("Sara", null));
+        assertThrows(IllegalArgumentException.class, () -> bank.openCurrent("Sara", null));
+        assertEquals(0, bank.accounts().size());
+    }
+
+    @Test
+    void savingsRateKeepsFullPrecision() {
+        SavingsAccount s = bank.openSavings("Sara", Money.parse("4.125", "interest rate"));
+        s.deposit(m("1200"), "Start");
+        assertEquals(new BigDecimal("4.125"), s.annualRatePercent());
+        assertEquals(m("4.12"), bank.endOfMonth());
+    }
 }
