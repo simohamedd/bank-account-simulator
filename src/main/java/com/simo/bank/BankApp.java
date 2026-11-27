@@ -29,7 +29,7 @@ public class BankApp {
             try {
                 switch (choice) {
                     case "1" -> System.out.println("Opened " + bank.openCurrent(ask("Owner name"), money("Overdraft limit")));
-                    case "2" -> System.out.println("Opened " + bank.openSavings(ask("Owner name"), money("Annual interest rate %")));
+                    case "2" -> System.out.println("Opened " + bank.openSavings(ask("Owner name"), rate("Annual interest rate %")));
                     case "3" -> { Account a = account(); a.deposit(money("Amount"), "Cash deposit"); System.out.println(a); }
                     case "4" -> { Account a = account(); a.withdraw(money("Amount"), "Cash withdrawal"); System.out.println(a); }
                     case "5" -> { bank.transfer(ask("From account"), ask("To account"), money("Amount")); System.out.println("Transfer complete"); }
@@ -53,6 +53,10 @@ public class BankApp {
 
     private BigDecimal money(String prompt) {
         return Money.of(ask(prompt).replace("£", "").replace(",", ""));
+    }
+
+    private BigDecimal rate(String prompt) {
+        return Money.parse(ask(prompt).replace("%", ""), "interest rate");
     }
 
     private String ask(String prompt) {
